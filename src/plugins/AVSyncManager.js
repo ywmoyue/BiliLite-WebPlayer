@@ -14,7 +14,6 @@ class AVSyncManager {
     if (!this.videoPlayer.isEnabled || !this.audioPlayer.isEnabled) return;
 
     const now = Date.now();
-    console.log("checkSync", this.isSyncing, now - this.lastSyncTime < this.syncCooldown);
     
     // 如果正在同步或处于冷却期，直接返回
     if (this.isSyncing || now - this.lastSyncTime < this.syncCooldown) return;
@@ -22,7 +21,6 @@ class AVSyncManager {
     const videoTime = this.videoPlayer.getCurrentTime();
     const audioTime = this.audioPlayer.getCurrentTime();
     const diff = videoTime - audioTime;
-    console.log("diff", diff);
 
     // 如果差异很小，不需要处理
     if (Math.abs(diff) < this.syncThresholdSmall) {
