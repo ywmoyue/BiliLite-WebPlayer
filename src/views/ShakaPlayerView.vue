@@ -4,7 +4,6 @@
     id="videoElement"
     width="100%"
     height="100%"
-    @loadedmetadata="onLoadedData"
     @timeupdate="onTimeupdate"
     @volumechange="onVolumechange"
     @ended="onEnded"
@@ -14,7 +13,6 @@
     id="audioElement"
     width="0"
     height="0"
-    @loadedmetadata="onAudioLoadedMateData"
     @volumechange="onVolumechange"
   ></video>
 </template>
@@ -31,6 +29,8 @@ window.shaka = shaka;
 
 const videoElement = ref(null);
 const audioElement = ref(null);
+const players = {};
+
 let playerController = null;
 
 const getPlayDataFromQuery = () => {
@@ -49,21 +49,6 @@ const getPlayDataFromQuery = () => {
 const onTimeupdate = (e) => {
   emitEvent("positionChanged", videoElement.value.currentTime);
   playerController.checkAVSync();
-};
-
-const onLoadedData = () => {
-  let duration = videoElement.value.duration;
-  console.log("duration:", duration);
-  if (duration == Infinity) {
-    duration = 0;
-  }
-  emitEvent("loaded", {
-    duration,
-  });
-};
-
-const onAudioLoadedMateData = () => {
-  console.log("onAudioLoadedMateData");
 };
 
 const onEnded = () => {
@@ -96,26 +81,39 @@ const initApp = async () => {
     streaming: { bufferingGoal: 30 },
   };
 
-  const videoPlayer = new ShakaMediaPlayer(
+  if (players.videoPlayer != null) {
+    players.videoPlayer.dispose();
+    players.videoPlayer = null;
+  }
+  if (players.audioPlayer != null) {
+    players.audioPlayer.dispose();
+    players.audioPlayer = null;
+  }
+  players.videoPlayer = new ShakaMediaPlayer(
     videoElement,
     "video",
     new shaka.Player(),
     playerConfig
   );
 
-  const audioPlayer = new ShakaMediaPlayer(
+  players.audioPlayer = new ShakaMediaPlayer(
     audioElement,
     "audio",
     new shaka.Player(),
     playerConfig
   );
 
-  const avSyncManager = new AVSyncManager(videoPlayer, audioPlayer);
+  const avSyncManager = new AVSyncManager(
+    players.videoPlayer,
+    players.audioPlayer
+  );
   playerController = new ShakaPlayerController(
-    videoPlayer,
-    audioPlayer,
+    players.videoPlayer,
+    players.audioPlayer,
     avSyncManager
   );
+
+  window.playerController = playerController;
 
   // 将控制器方法暴露给window
   window.resume = () => playerController.play();
@@ -127,9 +125,34 @@ const initApp = async () => {
   window.setCheckAVSyncDiff = (smallDiff, largeDiff) =>
     avSyncManager.setSyncThresholds(smallDiff, largeDiff);
 
-  // 初始化播放器
-  await videoPlayer.init(playData.video);
-  await audioPlayer.init(playData.audio);
+  let videoLoaded = false;
+  let audioLoaded = false;
+
+  const checkLoaded = () => {
+    if (videoLoaded && audioLoaded) {
+      const duration =
+        videoElement.value.duration === Infinity
+          ? 0
+          : videoElement.value.duration;
+      emitEvent("loaded", { duration });
+    }
+  };
+
+  await Promise.all([
+    players.videoPlayer.init(playData.video, () => {
+      videoLoaded = true;
+      checkLoaded();
+    }),
+    players.audioPlayer.init(playData.audio, () => {
+      audioLoaded = true;
+      checkLoaded();
+    }),
+  ]);
+
+  // If both are disabled (no URLs), still emit loaded
+  if (!players.videoPlayer.isEnabled && !players.audioPlayer.isEnabled) {
+    emitEvent("loaded", { duration: 0 });
+  }
 };
 
 onMounted(() => {

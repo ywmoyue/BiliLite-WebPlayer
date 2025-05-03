@@ -1,71 +1,94 @@
 class ShakaMediaPlayer {
-  constructor(elementRef, mediaType, shakaPlayer, config) {
-    this.elementRef = elementRef;
-    this.mediaType = mediaType;
-    this.shakaPlayer = shakaPlayer;
-    this.config = config;
-    this.isEnabled = true;
-    this.currentPlaybackRate = 1.0;
-  }
+    constructor(elementRef, mediaType, shakaPlayer, config) {
+        this.elementRef = elementRef;
+        this.mediaType = mediaType;
+        this.shakaPlayer = shakaPlayer;
+        this.config = config;
+        this.isEnabled = true;
+        this.currentPlaybackRate = 1.0;
+        this.loaded = false;
+        this.loadedCallback = null;
+        this.handleLoadedDataBind = this.handleLoadedData.bind(this);
+    }
+    
+    async init(mediaData, loadedCallback = null) {
+        if (!mediaData.url) {
+            this.isEnabled = false;
+            if (loadedCallback) loadedCallback();
+            return;
+        }
 
-  async init(mediaData) {
-    if (!mediaData.url) {
-      this.isEnabled = false;
-      return;
+        this.loadedCallback = loadedCallback;
+        this.elementRef.value.addEventListener('loadeddata', this.handleLoadedDataBind);
+
+        await this.shakaPlayer.attach(this.elementRef.value);
+        this.shakaPlayer.configure(this.config);
+        this.shakaPlayer.addEventListener("error", this.onErrorEvent);
+
+        try {
+            await this.shakaPlayer.load(mediaData.url, null, mediaData.contentType);
+            console.log(`The ${this.mediaType} has now been loaded!`);
+        } catch (e) {
+            this.onError(e);
+        }
     }
 
-    await this.shakaPlayer.attach(this.elementRef.value);
-    this.shakaPlayer.configure(this.config);
-    this.shakaPlayer.addEventListener("error", this.onErrorEvent);
-
-    try {
-      await this.shakaPlayer.load(mediaData.url, null, mediaData.contentType);
-      console.log(`The ${this.mediaType} has now been loaded!`);
-    } catch (e) {
-      this.onError(e);
+    handleLoadedData() {
+        this.loaded = true;
+        if (this.loadedCallback) {
+            this.loadedCallback();
+        }
     }
-  }
 
-  onErrorEvent = (event) => {
-    this.onError(event.detail);
-  };
+    dispose() {
+        try {
+            this.elementRef.value.removeEventListener('loadeddata', this.handleLoadedDataBind);
+            this.loadedCallback = null;
+        } catch (ex) {
+            console.warn(ex)
+        }
+    }
 
-  onError(error) {
-    console.error("Error code", error.code, "object", error);
-  }
+    onErrorEvent = (event) => {
+        this.onError(event.detail);
+    };
 
-  setCurrentTime(time) {
-    this.elementRef.value.currentTime = time;
-  }
+    onError(error) {
+        console.error("Error code", error.code, "object", error);
+    }
 
-  getCurrentTime() {
-    return this.elementRef.value.currentTime;
-  }
+    setCurrentTime(time) {
+        this.elementRef.value.currentTime = time;
+    }
 
-  setPlaybackRate(rate) {
-    this.currentPlaybackRate = rate;
-    this.elementRef.value.playbackRate = rate;
-  }
+    getCurrentTime() {
+        return this.elementRef.value.currentTime;
+    }
 
-  getPlaybackRate() {
-    return this.elementRef.value.playbackRate;
-  }
+    setPlaybackRate(rate) {
+        this.currentPlaybackRate = rate;
+        this.elementRef.value.playbackRate = rate;
+    }
 
-  play() {
-    this.elementRef.value.play();
-  }
+    getPlaybackRate() {
+        return this.elementRef.value.playbackRate;
+    }
 
-  pause() {
-    this.elementRef.value.pause();
-  }
+    play() {
+        this.elementRef.value.play();
+    }
 
-  setVolume(volume) {
-    this.elementRef.value.volume = volume;
-  }
+    pause() {
+        this.elementRef.value.pause();
+    }
 
-  getVolume() {
-    return this.elementRef.value.volume;
-  }
+    setVolume(volume) {
+        this.elementRef.value.volume = volume;
+    }
+
+    getVolume() {
+        return this.elementRef.value.volume;
+    }
 }
 
 export default ShakaMediaPlayer
