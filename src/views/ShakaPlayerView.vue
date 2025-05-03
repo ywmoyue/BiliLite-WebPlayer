@@ -33,6 +33,32 @@ const players = {};
 
 let playerController = null;
 
+document.addEventListener("visibilitychange", function () {
+  if (document.visibilityState === "visible") {
+    console.log("页面恢复前台");
+    // 如果存在音视频两个播放器，则将视频进度设置为音频进度
+    if (
+      players.videoPlayer &&
+      players.audioPlayer &&
+      players.videoPlayer.isEnabled &&
+      players.audioPlayer.isEnabled
+    ) {
+      const audioTime = players.audioPlayer.getCurrentTime();
+      players.videoPlayer.setCurrentTime(audioTime);
+    }
+    // 恢复音视频进度同步计时器
+    if (playerController) {
+      playerController.checkAVSync();
+    }
+  } else {
+    console.log("页面进入后台");
+    // 暂停音视频进度同步计时器
+    if (playerController && playerController.avSyncManager) {
+      playerController.avSyncManager.resetSyncState();
+    }
+  }
+});
+
 const getPlayDataFromQuery = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const mpdUrlBase64 = urlParams.get("playData");
