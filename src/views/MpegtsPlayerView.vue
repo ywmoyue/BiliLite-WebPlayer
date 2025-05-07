@@ -25,6 +25,8 @@ import MpegtsMediaPlayer from "../plugins/mpegts/MpegtsMediaPlayer";
 import MpegtsPlayerController from "../plugins/mpegts/MpegtsPlayerController";
 import AVSyncManager from "../plugins/AVSyncManager";
 
+const viewName = "MpegtsPlayerView";
+console.log(viewName);
 const videoElement = ref(null);
 const audioElement = ref(null);
 const players = {};

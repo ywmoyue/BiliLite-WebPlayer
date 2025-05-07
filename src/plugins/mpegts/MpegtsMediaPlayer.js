@@ -1,4 +1,5 @@
-// MpegtsMediaPlayer.js
+import mpegts from "mpegts.js";
+
 class MpegtsMediaPlayer {
   constructor(elementRef, mediaType, player, config) {
     this.elementRef = elementRef;

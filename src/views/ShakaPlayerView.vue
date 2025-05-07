@@ -27,6 +27,8 @@ import AVSyncManager from "../plugins/AVSyncManager";
 
 window.shaka = shaka;
 
+const viewName = "ShakaPlayerView";
+console.log(viewName);
 const videoElement = ref(null);
 const audioElement = ref(null);
 const players = {};
