@@ -120,6 +120,14 @@ const initApp = async () => {
   window.setCheckAVSyncDiff = (smallDiff, largeDiff) =>
     avSyncManager.setSyncThresholds(smallDiff, largeDiff);
 
+  window.flipVertical = () => playerController.flipVertical();
+  window.flipHorizontal = () => playerController.flipHorizontal();
+  window.zoom = (scaleFactor) => playerController.zoom(scaleFactor);
+  window.move = (x, y) => playerController.move(x, y);
+  window.resetTransforms = () => playerController.resetTransforms();
+  window.togglePictureInPicture = () =>
+    playerController.togglePictureInPicture();
+
   let videoLoaded = false;
   let audioLoaded = false;
 
@@ -162,5 +170,7 @@ window.initApp = initApp;
   width: 100%;
   height: 100%;
   background: black;
+  object-fit: contain;
+  transition: transform 0.2s ease;
 }
 </style>

@@ -97,6 +97,10 @@ class MpegtsMediaPlayer {
   getVolume() {
     return this.elementRef.value.volume;
   }
+
+  getStats() {
+    return {};
+  }
 }
 
 export default MpegtsMediaPlayer;
