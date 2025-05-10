@@ -10,6 +10,10 @@ class MpegtsMediaPlayer {
     this.loaded = false;
     this.loadedCallback = null;
     this.handleLoadedDataBind = this.handleLoadedData.bind(this);
+    this.handleStatisticsInfoBind = this.handleStatisticsInfo.bind(this);
+    this.handleMediaInfoBind = this.handleMediaInfo.bind(this);
+    this.statisticsInfo = {};
+    this.mediaInfo = {};
   }
 
   async init(mediaData, loadedCallback = null) {
@@ -34,19 +38,26 @@ class MpegtsMediaPlayer {
       url: mediaData.url,
       isLive: false,
     });
+    this.player.on(
+      mpegts.Events.STATISTICS_INFO,
+      this.handleStatisticsInfoBind
+    );
+    this.player.on(mpegts.Events.MEDIA_INFO, this.handleMediaInfoBind);
 
     this.player.attachMediaElement(this.elementRef.value);
     this.player.load();
+  }
 
-    return new Promise((resolve) => {
-      this.elementRef.value.addEventListener("loadedmetadata", () => {
-        console.log(`The ${this.mediaType} has now been loaded!`);
-        resolve();
-      });
-    });
+  handleStatisticsInfo(e) {
+    this.statisticsInfo = e;
+  }
+
+  handleMediaInfo(e) {
+    this.mediaInfo = e;
   }
 
   handleLoadedData() {
+    console.log(`The ${this.mediaType} has now been loaded!`);
     this.loaded = true;
     if (this.loadedCallback) {
       this.loadedCallback();
@@ -59,6 +70,12 @@ class MpegtsMediaPlayer {
         "loadeddata",
         this.handleLoadedDataBind
       );
+
+      this.player.off(
+        mpegts.Events.STATISTICS_INFO,
+        this.handleStatisticsInfoBind
+      );
+      this.player.off(mpegts.Events.MEDIA_INFO, this.handleMediaInfoBind);
       this.loadedCallback = null;
     } catch (ex) {
       console.warn(ex);
@@ -99,7 +116,17 @@ class MpegtsMediaPlayer {
   }
 
   getStats() {
-    return {};
+    return {
+      droppedFrames: this.statisticsInfo.droppedFrames,
+      decodedFrames: this.statisticsInfo.decodedFrames,
+      bpsAudio: this.statisticsInfo.bps_audio,
+      bpsVideo: this.statisticsInfo.bps_video,
+      speed: `${this.statisticsInfo.speed.toFixed(2)} KB/s`,
+      height: this.mediaInfo.height,
+      width: this.mediaInfo.width,
+      audioCodec: this.mediaInfo.audioCodec,
+      videoCodec: this.mediaInfo.videoCodec,
+    };
   }
 }
 

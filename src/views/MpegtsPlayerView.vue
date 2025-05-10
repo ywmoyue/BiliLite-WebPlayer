@@ -130,7 +130,6 @@ const initApp = async () => {
 
   let videoLoaded = false;
   let audioLoaded = false;
-
   const checkLoaded = () => {
     if (videoLoaded && audioLoaded) {
       const duration =
