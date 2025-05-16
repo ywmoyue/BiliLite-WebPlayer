@@ -28,6 +28,7 @@ class BasePlayerController {
   }
 
   seek(time) {
+    console.log("seek", time);
     this.videoPlayer.setCurrentTime(time);
     this.audioPlayer.setCurrentTime(time);
   }

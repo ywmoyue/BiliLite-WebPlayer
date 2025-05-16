@@ -28,13 +28,33 @@ class ShakaMediaPlayer {
     await this.shakaPlayer.attach(this.elementRef.value);
     this.shakaPlayer.configure(this.config);
     this.shakaPlayer.addEventListener("error", this.onErrorEvent);
-
+    this.startFrozenCheckTimer();
     try {
       await this.shakaPlayer.load(mediaData.url, null, mediaData.contentType);
       console.log(`The ${this.mediaType} has now been loaded!`);
     } catch (e) {
       this.onError(e);
     }
+  }
+
+  startFrozenCheckTimer() {
+    if (this.mediaType != "video") return;
+    if (this.frozenCheckTimer) {
+      this.stopFrozenCheckTimer();
+    }
+    this.frozenCheckTimer = setInterval(() => {
+      if (
+        !this.elementRef.value.paused &&
+        this.elementRef.value.currentTime == this.lastPlayTime
+      ) {
+        console.log("检测到视频冻结");
+      }
+      this.lastPlayTime = this.elementRef.value.currentTime;
+    }, 1000);
+  }
+
+  stopFrozenCheckTimer() {
+    if (this.frozenCheckTimer) clearInterval(this.frozenCheckTimer);
   }
 
   handleLoadedData() {
@@ -51,6 +71,7 @@ class ShakaMediaPlayer {
         this.handleLoadedDataBind
       );
       this.loadedCallback = null;
+      this.stopFrozenCheckTimer();
     } catch (ex) {
       console.warn(ex);
     }
