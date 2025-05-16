@@ -32,6 +32,7 @@ console.log(viewName);
 const videoElement = ref(null);
 const audioElement = ref(null);
 const players = {};
+const isEnded = false;
 
 let playerController = null;
 
@@ -75,12 +76,15 @@ const getPlayDataFromQuery = () => {
 };
 
 const onTimeupdate = (e) => {
+  if (isEnded) return;
   emitEvent("positionChanged", videoElement.value.currentTime);
   playerController.checkAVSync();
 };
 
 const onEnded = () => {
+  if (isEnded) return;
   emitEvent("ended");
+  isEnded = true;
 };
 
 const onVolumechange = (e) => {
@@ -140,6 +144,7 @@ const initApp = async () => {
     players.audioPlayer,
     avSyncManager
   );
+  isEnded = false;
 
   window.playerController = playerController;
 
