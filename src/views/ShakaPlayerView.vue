@@ -32,7 +32,7 @@ console.log(viewName);
 const videoElement = ref(null);
 const audioElement = ref(null);
 const players = {};
-const isEnded = false;
+let isEnded = false;
 
 let playerController = null;
 
