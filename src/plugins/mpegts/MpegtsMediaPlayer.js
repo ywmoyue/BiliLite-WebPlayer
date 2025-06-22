@@ -36,7 +36,7 @@ class MpegtsMediaPlayer {
     this.player = mpegts.createPlayer({
       type: mediaData.url.endsWith(".m3u8") ? "hls" : "flv",
       url: mediaData.url,
-      isLive: false,
+      isLive: true,
     });
     this.player.on(
       mpegts.Events.STATISTICS_INFO,

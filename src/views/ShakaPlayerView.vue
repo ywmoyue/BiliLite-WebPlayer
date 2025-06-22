@@ -4,6 +4,7 @@
     id="videoElement"
     width="100%"
     height="100%"
+    crossorigin="anonymous"
     @timeupdate="onTimeupdate"
     @volumechange="onVolumechange"
     @ended="onEnded"
@@ -165,6 +166,7 @@ const initApp = async () => {
   window.resetTransforms = () => playerController.resetTransforms();
   window.togglePictureInPicture = () =>
     playerController.togglePictureInPicture();
+  window.captureVideo = () => playerController.capture();
 
   let videoLoaded = false;
   let audioLoaded = false;

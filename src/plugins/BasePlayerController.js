@@ -1,3 +1,4 @@
+import { captureVideoFrame } from "./commonUtils";
 import { emitEvent } from "./iframeEvents";
 
 class BasePlayerController {
@@ -154,6 +155,26 @@ class BasePlayerController {
     } catch (error) {
       console.error("Picture-in-Picture error:", error);
       return { success: false, error: error.message };
+    }
+  }
+
+  capture() {
+    console.log("capture");
+    const videoElement = this.videoPlayer.elementRef.value;
+
+    if (!videoElement) {
+      console.error("Video element not found");
+      emitEvent("captureImageData", { imageData: "" });
+      return;
+    }
+    try {
+      const imageData = captureVideoFrame(videoElement);
+
+      console.log("captureImageData", { imageData });
+      emitEvent("captureImageData", { imageData });
+    } catch (ex) {
+      console.error("capture error", ex);
+      emitEvent("captureImageData", { imageData: "" });
     }
   }
 
