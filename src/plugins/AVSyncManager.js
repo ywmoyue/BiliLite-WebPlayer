@@ -14,75 +14,42 @@ class AVSyncManager {
     if (!this.videoPlayer.isEnabled || !this.audioPlayer.isEnabled) return;
 
     const now = Date.now();
-    
-    // 如果正在同步或处于冷却期，直接返回
-    if (this.isSyncing || now - this.lastSyncTime < this.syncCooldown) return;
 
     const videoTime = this.videoPlayer.getCurrentTime();
     const audioTime = this.audioPlayer.getCurrentTime();
     const diff = videoTime - audioTime;
 
+    let audioRate = this.videoPlayer.currentPlaybackRate;
+
     // 如果差异很小，不需要处理
     if (Math.abs(diff) < this.syncThresholdSmall) {
-      this.resetSyncState(); // 确保状态被正确重置
+      this.audioPlayer.setPlaybackRate(audioRate);
       return;
     }
 
-    this.isSyncing = true;
-    this.lastSyncTime = now;
-
     try {
-      // 清除之前的定时器
-      if (this.syncTimeoutId) {
-        clearTimeout(this.syncTimeoutId);
-        this.syncTimeoutId = null;
-      }
-
       if (Math.abs(diff) >= this.syncThresholdLarge) {
         // 大偏差 - 直接跳跃
-        console.log(`大偏差同步: 跳跃音频到视频位置 (差异: ${diff.toFixed(3)}s)`);
+        console.log(
+          `大偏差同步: 跳跃音频到视频位置 (差异: ${diff.toFixed(3)}s)`
+        );
         this.audioPlayer.setCurrentTime(videoTime);
-        this.resetSyncState(); // 立即重置状态
+        this.audioPlayer.setPlaybackRate(audioRate);
       } else {
         // 小偏差 - 调整播放速率
-        const syncRate = this.calculateSyncRate(diff, this.videoPlayer.currentPlaybackRate);
-        console.log(`小偏差同步: 调整音频速率为 ${syncRate.toFixed(2)}x (差异: ${diff.toFixed(3)}s)`);
+        audioRate = this.calculateSyncRate(diff, audioRate);
+        console.log(
+          `小偏差同步: 调整音频速率为 ${audioRate.toFixed(
+            2
+          )}x (差异: ${diff.toFixed(3)}s)`
+        );
 
-        this.audioPlayer.setPlaybackRate(syncRate);
-
-        // 设置定时器检查同步状态
-        this.syncTimeoutId = setTimeout(() => {
-          const newDiff = this.videoPlayer.getCurrentTime() - this.audioPlayer.getCurrentTime();
-          
-          if (Math.abs(newDiff) < this.syncThresholdSmall) {
-            console.log(`同步完成，恢复音频速率为 ${this.videoPlayer.currentPlaybackRate}x`);
-            this.resetSyncState();
-          } else {
-            // 如果仍然不同步，继续调整
-            console.log(`同步未完成，继续调整 (新差异: ${newDiff.toFixed(3)}s)`);
-            this.isSyncing = false; // 关键修正：重置同步状态
-            this.checkSync();       // 然后重新检查
-          }
-          this.syncTimeoutId = null;
-        }, 500);
+        this.audioPlayer.setPlaybackRate(audioRate);
       }
     } catch (error) {
       console.error("同步过程中出错:", error);
-      this.resetSyncState();
+      this.audioPlayer.setPlaybackRate(audioRate);
     }
-  }
-
-  resetAudioRate() {
-    this.audioPlayer.setPlaybackRate(this.videoPlayer.currentPlaybackRate);
-  }
-
-  resetSyncState() {
-    if (this.syncTimeoutId) {
-      clearTimeout(this.syncTimeoutId);
-      this.syncTimeoutId = null;
-    }
-    this.resetAudioRate();
-    this.isSyncing = false;
   }
 
   calculateSyncRate(diff, baseRate) {
@@ -94,11 +61,6 @@ class AVSyncManager {
     } else {
       return Math.max(0.5, baseRate - factor);
     }
-  }
-
-  setSyncThresholds(smallDiff, largeDiff) {
-    this.syncThresholdSmall = smallDiff;
-    this.syncThresholdLarge = largeDiff;
   }
 }
 

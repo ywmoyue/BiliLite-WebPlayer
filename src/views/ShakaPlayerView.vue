@@ -57,9 +57,9 @@ document.addEventListener("visibilitychange", function () {
   } else {
     console.log("页面进入后台");
     // 暂停音视频进度同步计时器
-    if (playerController && playerController.avSyncManager) {
-      playerController.avSyncManager.resetSyncState();
-    }
+    // if (playerController && playerController.avSyncManager) {
+    //   playerController.avSyncManager.resetSyncState();
+    // }
   }
 });
 
