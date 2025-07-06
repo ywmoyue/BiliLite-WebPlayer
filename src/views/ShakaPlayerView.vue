@@ -150,7 +150,13 @@ const initApp = async () => {
   window.playerController = playerController;
 
   // 将控制器方法暴露给window
-  window.resume = () => playerController.play();
+  window.resume = () => {
+    if (isEnded) {
+      playerController.seek(0);
+      isEnded = false;
+    }
+    playerController.play();
+  };
   window.seek = (time) => playerController.seek(time);
   window.setVolume = (volume) => playerController.setVolume(volume);
   window.getVolume = () => playerController.getVolume();
