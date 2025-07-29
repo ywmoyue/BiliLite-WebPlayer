@@ -16,7 +16,7 @@ class MpegtsMediaPlayer {
     this.mediaInfo = {};
   }
 
-  async init(mediaData, loadedCallback = null) {
+  async init(mediaData, loadedCallback = null, errorCallback = null) {
     if (!mediaData.url) {
       this.isEnabled = false;
       if (loadedCallback) loadedCallback();
@@ -24,6 +24,7 @@ class MpegtsMediaPlayer {
     }
 
     this.loadedCallback = loadedCallback;
+    this.errorCallback = errorCallback;
     this.elementRef.value.addEventListener(
       "loadeddata",
       this.handleLoadedDataBind
@@ -43,6 +44,11 @@ class MpegtsMediaPlayer {
       this.handleStatisticsInfoBind
     );
     this.player.on(mpegts.Events.MEDIA_INFO, this.handleMediaInfoBind);
+    this.player.on(
+      mpegts.Events.VIDEO_FROZEN,
+      this.handleVideoFrozen.bind(this)
+    );
+    this.player.on(mpegts.Events.ERROR, this.handleVideoError.bind(this));
 
     this.player.attachMediaElement(this.elementRef.value);
     this.player.load();
@@ -54,6 +60,16 @@ class MpegtsMediaPlayer {
 
   handleMediaInfo(e) {
     this.mediaInfo = e;
+  }
+
+  handleVideoFrozen() {
+    console.log(`video frozen!`);
+    if (this.errorCallback) this.errorCallback();
+  }
+
+  handleVideoError(errType, errDetail, errObject) {
+    console.log(`video error!`, errType, errDetail, errObject);
+    if (this.errorCallback) this.errorCallback();
   }
 
   handleLoadedData() {
@@ -76,6 +92,10 @@ class MpegtsMediaPlayer {
         this.handleStatisticsInfoBind
       );
       this.player.off(mpegts.Events.MEDIA_INFO, this.handleMediaInfoBind);
+
+      this.player?.unload();
+      this.player?.detachMediaElement();
+      this.player?.destroy();
       this.loadedCallback = null;
     } catch (ex) {
       console.warn(ex);

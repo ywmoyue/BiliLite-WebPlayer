@@ -118,6 +118,9 @@ const initApp = async () => {
   window.getVolume = () => playerController.getVolume();
   window.setRate = (speed) => playerController.setPlaybackRate(speed);
   window.pause = () => playerController.pause();
+  window.reload = () => {
+    initApp();
+  };
   window.setCheckAVSyncDiff = (smallDiff, largeDiff) =>
     avSyncManager.setSyncThresholds(smallDiff, largeDiff);
 
@@ -143,10 +146,16 @@ const initApp = async () => {
   };
 
   await Promise.all([
-    players.videoPlayer.init(playData.video, () => {
-      videoLoaded = true;
-      checkLoaded();
-    }),
+    players.videoPlayer.init(
+      playData.video,
+      () => {
+        videoLoaded = true;
+        checkLoaded();
+      },
+      () => {
+        window.reload();
+      }
+    ),
     players.audioPlayer.init(playData.audio, () => {
       audioLoaded = true;
       checkLoaded();
