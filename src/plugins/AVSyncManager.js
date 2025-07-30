@@ -62,6 +62,12 @@ class AVSyncManager {
       return Math.max(0.5, baseRate - factor);
     }
   }
+
+  setSyncThresholds(syncThresholdSmall, syncThresholdLarge) {
+    console.info("设置同步偏差阈值:", syncThresholdSmall, syncThresholdLarge);
+    this.syncThresholdSmall = syncThresholdSmall; // 小偏差阈值(秒)
+    this.syncThresholdLarge = syncThresholdLarge; // 大偏差阈值(秒)
+  }
 }
 
 export default AVSyncManager;
