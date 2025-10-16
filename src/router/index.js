@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import ShakaPlayerView from "@/views/ShakaPlayerView.vue";
 import MpegtsPlayerView from "@/views/MpegtsPlayerView.vue";
+import DanmakuPlayerView from "@/views/DanmakuPlayerView.vue";
 import { h } from "vue";
 
 const router = createRouter({
@@ -13,6 +14,7 @@ const router = createRouter({
           const components = {
             ShakaPlayerView,
             MpegtsPlayerView,
+            DanmakuPlayerView,
           };
           const view = this.$route.query.view || "ShakaPlayerView";
           return h(components[view] || ShakaPlayerView);
